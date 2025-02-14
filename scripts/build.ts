@@ -13,3 +13,17 @@ await build({
   shims: true,
   clean: true,
 })
+
+await build({
+  entry: ["src/web/main.ts"],
+  outDir: "dist/web",
+
+  format: ["esm"],
+  target: "esnext",
+  platform: "browser",
+
+  dts: true,
+  sourcemap: true,
+  shims: true,
+  clean: true,
+})

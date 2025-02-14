@@ -13,8 +13,16 @@
   "type": "module",
   "exports": {
     ".": {
-      "types": "./dist/main.d.ts",
-      "default": "./dist/main.js"
+      "types": "./dist/web/main.d.ts",
+      "default": "./dist/web/main.js"
+    },
+    "./web": {
+      "types": "./dist/web/main.d.ts",
+      "default": "./dist/web/main.js"
+    },
+    "./node": {
+      "types": "./dist/node/main.d.ts",
+      "default": "./dist/node/main.js"
     }
   },
   "files": [
