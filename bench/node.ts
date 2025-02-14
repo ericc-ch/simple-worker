@@ -28,9 +28,10 @@ async function runBenchmark() {
 
   // Benchmark direct execution
   const directStart = performance.now()
-  for (let i = 0; i < ITERATIONS; i++) {
-    directAdd(i, i)
-  }
+  const directPromises = Array(ITERATIONS)
+    .fill(0)
+    .map((_, i) => directAdd(i, i))
+  await Promise.all(directPromises)
   const directEnd = performance.now()
   const directTime = directEnd - directStart
 
@@ -73,15 +74,15 @@ async function runBenchmark() {
 
   // Benchmark pool execution with CPU core count
   const cpuCount = os.availableParallelism()
-  const pool = new WorkerPool<(a: number, b: number) => number>({
+  const pool = await WorkerPool.create<(a: number, b: number) => number>({
     createWorker: async () => {
       const worker = await workerTS(
         path.join(import.meta.dirname, "./fixtures/add-node.ts"),
       )
       return create(worker)
     },
-    size: cpuCount,
-  )
+    size: 2,
+  })
 
   const poolStart = performance.now()
   const poolPromises = []

@@ -12,7 +12,7 @@ const testWorkerPath = path.join(
 
 describe("WorkerPool", () => {
   it("should execute tasks using worker pool", async () => {
-    const pool = new WorkerPool<(a: number, b: number) => number>({
+    const pool = await WorkerPool.create<(a: number, b: number) => number>({
       createWorker: async () => {
         const worker = await workerTS(testWorkerPath)
         return create(worker)
