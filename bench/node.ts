@@ -73,14 +73,14 @@ async function runBenchmark() {
 
   // Benchmark pool execution with CPU core count
   const cpuCount = os.availableParallelism()
-  const pool = new WorkerPool<(a: number, b: number) => number>(
-    async () => {
+  const pool = new WorkerPool<(a: number, b: number) => number>({
+    createWorker: async () => {
       const worker = await workerTS(
         path.join(import.meta.dirname, "./fixtures/add-node.ts"),
       )
       return create(worker)
     },
-    { size: cpuCount },
+    size: cpuCount,
   )
 
   const poolStart = performance.now()
