@@ -21,7 +21,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsx scripts/build.ts",
     "lint": "eslint .",
     "prepack": "pnpm run build",
     "prepare": "simple-git-hooks",

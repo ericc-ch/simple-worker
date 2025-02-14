@@ -1,14 +1,14 @@
-import { defineConfig } from "tsup"
+import { build } from "tsup"
 
-export default defineConfig({
-  entry: ["src/main.ts"],
+await build({
+  entry: ["src/node/main.ts"],
+  outDir: "dist/node",
 
   format: ["esm"],
   target: "esnext",
   platform: "node",
 
   dts: true,
-  removeNodeProtocol: false,
   sourcemap: true,
   shims: true,
   clean: true,
