@@ -1,6 +1,6 @@
 {
   "name": "worker-plus",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Type-safe abstraction over Web Workers and Node.js Worker Threads with pool support",
   "keywords": [],
   "homepage": "https://github.com/ericc-ch/worker-plus",
