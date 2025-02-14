@@ -1,11 +1,13 @@
-export type AnyFunction = (...args: Array<never>) => never | Promise<never>
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+export type AnyFunction = (...args: Array<any>) => any
 
 export interface WorkerRequest {
   id: string
-  payload: never
+  payload: any
 }
 
 export interface WorkerResponse {
   id: string
-  data: never
+  data: any
 }

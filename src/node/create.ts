@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import { Worker } from "worker_threads"
 
 import { AnyFunction, WorkerRequest, WorkerResponse } from "../types"
@@ -31,7 +33,7 @@ export function create<F extends AnyFunction = AnyFunction>(worker: Worker) {
   })
 
   return {
-    execute: (payload: Parameters<F>[0]): Promise<ReturnType<F>> => {
+    execute: (...payload: Parameters<F>): Promise<ReturnType<F>> => {
       const id = globalThis.crypto.randomUUID()
 
       const { promise, resolve, reject } =

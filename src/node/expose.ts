@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 import { parentPort } from "node:worker_threads"
 
 import { ensure } from "../lib/ensure"
@@ -9,7 +12,7 @@ export function expose(fn: AnyFunction) {
   parentPort.on("message", async (msg: WorkerRequest) => {
     ensure(parentPort)
 
-    const result = await fn(msg.payload)
+    const result = await fn(...msg.payload)
     const response: WorkerResponse = { id: msg.id, data: result }
     parentPort.postMessage(response)
   })
