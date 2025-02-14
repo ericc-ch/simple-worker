@@ -17,9 +17,6 @@
       "default": "./dist/main.js"
     }
   },
-  "bin": {
-    "@echristian/pkg-placeholder": "./dist/cli.js"
-  },
   "files": [
     "dist"
   ],
@@ -38,9 +35,6 @@
   },
   "lint-staged": {
     "*": "eslint --fix"
-  },
-  "dependencies": {
-    "citty": "^0.1.6"
   },
   "devDependencies": {
     "@echristian/eslint-config": "^0.0.20",

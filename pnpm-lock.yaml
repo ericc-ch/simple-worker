@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      citty:
-        specifier: ^0.1.6
-        version: 0.1.6
     devDependencies:
       '@echristian/eslint-config':
         specifier: ^0.0.20
