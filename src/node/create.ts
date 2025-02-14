@@ -2,9 +2,16 @@
 
 import { Worker } from "worker_threads"
 
-import { AnyFunction, WorkerRequest, WorkerResponse } from "../types"
+import {
+  AnyFunction,
+  WorkerInstance,
+  WorkerRequest,
+  WorkerResponse,
+} from "../types"
 
-export function create<F extends AnyFunction = AnyFunction>(worker: Worker) {
+export function create<F extends AnyFunction = AnyFunction>(
+  worker: Worker,
+): WorkerInstance<F> {
   const pending = new Map<
     string,
     {
