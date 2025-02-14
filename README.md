@@ -1,11 +1,11 @@
-# simple-worker
+# worker-plus
 
 A lightweight and efficient abstraction over Web Workers and Node.js Worker Threads, with built-in worker pool support.
 
 ## Installation
 
 ```bash
-pnpm add simple-worker
+pnpm add worker-plus
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ pnpm add simple-worker
 #### Worker File (worker.ts)
 
 ```typescript
-import { expose } from "simple-worker";
+import { expose } from "worker-plus";
 
 function heavyComputation(n: number) {
   let result = 0;
@@ -31,7 +31,7 @@ expose(heavyComputation);
 #### Main File (main.ts)
 
 ```typescript
-import { create } from "simple-worker/node";
+import { create } from "worker-plus/node";
 import { Worker } from "worker_threads"; // or "worker" for web
 
 // For Node.js

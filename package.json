@@ -1,13 +1,13 @@
 {
-  "name": "simple-worker",
+  "name": "worker-plus",
   "version": "0.0.1",
-  "description": "Simple abstraction over node worker.",
+  "description": "Type-safe abstraction over Web Workers and Node.js Worker Threads with pool support",
   "keywords": [],
-  "homepage": "https://github.com/ericc-ch/simple-worker",
-  "bugs": "https://github.com/ericc-ch/simple-worker/issues",
+  "homepage": "https://github.com/ericc-ch/worker-plus",
+  "bugs": "https://github.com/ericc-ch/worker-plus/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericc-ch/simple-worker.git"
+    "url": "git+https://github.com/ericc-ch/worker-plus.git"
   },
   "author": "Erick Christian <erickchristian48@gmail.com>",
   "type": "module",
