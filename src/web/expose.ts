@@ -1,15 +1,27 @@
-import { AnyFunction } from "../types"
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
-export function expose(fn: AnyFunction) {
-  // ensure(parentPort)
+import { AnyFunction, WorkerRequest, WorkerResponse } from "../types"
 
-  // parentPort.on("message", async (msg: WorkerRequest) => {
-  //   ensure(parentPort)
-
-  //   const result = await fn(msg.payload)
-  //   const response: WorkerResponse = { id: msg.id, data: result }
-  //   parentPort.postMessage(response)
-  // })
-
-  return "stub"
+export function expose(fn: AnyFunction): void {
+  self.addEventListener(
+    "message",
+    async (event: MessageEvent<WorkerRequest>) => {
+      const msg = event.data
+      try {
+        const result = await fn(...msg.payload)
+        const response: WorkerResponse = {
+          id: msg.id,
+          data: result,
+        }
+        self.postMessage(response)
+      } catch (error) {
+        const response: WorkerResponse = {
+          id: msg.id,
+          data: error instanceof Error ? error.message : String(error),
+        }
+        self.postMessage(response)
+      }
+    },
+  )
 }

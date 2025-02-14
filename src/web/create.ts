@@ -1,6 +1,15 @@
-import { AnyFunction } from "../types"
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-export function create<F extends AnyFunction = AnyFunction>(worker: Worker) {
+import {
+  AnyFunction,
+  WorkerRequest,
+  WorkerResponse,
+  WorkerInstance,
+} from "../types"
+
+export function create<F extends AnyFunction = AnyFunction>(
+  worker: Worker,
+): WorkerInstance<F> {
   const pending = new Map<
     string,
     {
@@ -9,39 +18,46 @@ export function create<F extends AnyFunction = AnyFunction>(worker: Worker) {
     }
   >()
 
-  return "stub"
+  // Listen for incoming messages from the worker
+  worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
+    const msg = event.data
+    if (typeof msg.id === "string") {
+      const handlers = pending.get(msg.id)
+      if (!handlers) return
 
-  // // Listen for incoming messages from the worker.
-  // worker.on("message", (msg: WorkerResponse) => {
-  //   if (typeof msg.id === "string") {
-  //     const handlers = pending.get(msg.id)
-  //     if (!handlers) return
+      handlers.resolve(msg.data)
+      pending.delete(msg.id)
+    }
+  })
 
-  //     handlers.resolve(msg.data)
-  //     pending.delete(msg.id)
-  //   }
-  // })
+  // Handle worker errors
+  worker.addEventListener("error", (error: ErrorEvent) => {
+    for (const { reject } of pending.values()) {
+      reject(new Error(error.message))
+    }
+    pending.clear()
+  })
 
-  // // If the worker errors, reject all pending promises.
-  // worker.on("error", (error: Error) => {
-  //   for (const { reject } of pending.values()) {
-  //     reject(error)
-  //   }
-  //   pending.clear()
-  // })
+  return {
+    execute: async (...params: Parameters<F>): Promise<ReturnType<F>> => {
+      const id = globalThis.crypto.randomUUID()
 
-  // return {
-  //   execute: (payload: Parameters<F>[0]): Promise<ReturnType<F>> => {
-  //     const id = globalThis.crypto.randomUUID()
+      const { promise, resolve, reject } =
+        Promise.withResolvers<ReturnType<F>>()
 
-  //     const { promise, resolve, reject } =
-  //       Promise.withResolvers<ReturnType<F>>()
-  //     pending.set(id, { resolve, reject })
+      const request: WorkerRequest = { id, payload: params }
+      worker.postMessage(request)
+      pending.set(id, { resolve, reject })
 
-  //     worker.postMessage({ id, payload } as WorkerRequest)
-
-  //     return promise
-  //   },
-  //   terminate: () => worker.terminate(),
-  // }
+      return promise
+    },
+    terminate: () => {
+      worker.terminate()
+      // Clean up any pending promises
+      for (const { reject } of pending.values()) {
+        reject(new Error("Worker terminated"))
+      }
+      pending.clear()
+    },
+  }
 }
