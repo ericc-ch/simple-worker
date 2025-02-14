@@ -17,7 +17,7 @@ describe("create", () => {
     const result = await instance.execute(5, 3)
     expect(result).toBe(8)
 
-    await instance.terminate()
+    instance.terminate()
   })
 
   it("should handle multiple concurrent executions", async () => {
@@ -32,6 +32,6 @@ describe("create", () => {
 
     expect(results).toEqual([3, 7, 11])
 
-    await instance.terminate()
+    instance.terminate()
   })
 })
