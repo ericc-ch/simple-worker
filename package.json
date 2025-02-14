@@ -1,6 +1,6 @@
 {
   "name": "simple-worker",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Simple abstraction over node worker.",
   "keywords": [],
   "homepage": "https://github.com/ericc-ch/simple-worker",
