@@ -6,101 +6,87 @@ import { workerTS } from "worker-ts"
 import { create } from "../src/node/create"
 import { WorkerPool } from "../src/pool"
 
-const ITERATIONS = 100000
+const TASK_COUNT = 100 // Number of heavy computations to run
+const cpuCount = os.availableParallelism()
 
 console.log(`CPU Cores: ${os.availableParallelism()}`)
 console.log(`Node.js Version: ${process.version}`)
 console.log(`Platform: ${process.platform}`)
 console.log("---")
 
-// Actual benchmark
-console.log(`Running benchmark with ${ITERATIONS} iterations...`)
+console.log(`Running benchmark with ${TASK_COUNT} heavy computations...`)
 
 async function runBenchmark() {
-  // Create a worker for the add function
+  // Create a worker for the heavy computation
   const worker = await workerTS(
-    path.join(import.meta.dirname, "./fixtures/add-node.ts"),
+    path.join(import.meta.dirname, "./fixtures/heavy-compute.ts"),
   )
-  const instance = create<(a: number, b: number) => number>(worker)
+  const instance = create<(n: number) => number>(worker)
 
   // Direct function for comparison
-  const directAdd = (a: number, b: number) => a + b
+  const directCompute = (n: number) => {
+    let result = 0
+    for (let i = 0; i < 1000000; i++) {
+      result += Math.sin(n * i)
+    }
+    return result
+  }
 
-  // Benchmark direct execution
+  // Benchmark direct execution (sequential)
   const directStart = performance.now()
-  const directPromises = Array(ITERATIONS)
-    .fill(0)
-    .map((_, i) => directAdd(i, i))
-  await Promise.all(directPromises)
+  for (let i = 0; i < TASK_COUNT; i++) {
+    directCompute(i)
+  }
   const directEnd = performance.now()
   const directTime = directEnd - directStart
 
-  // Benchmark worker execution
+  // Benchmark single worker execution (sequential)
   const workerStart = performance.now()
-  for (let i = 0; i < ITERATIONS; i++) {
-    await instance.execute(i, i)
+  for (let i = 0; i < TASK_COUNT; i++) {
+    await instance.execute(i)
   }
   const workerEnd = performance.now()
   const workerTime = workerEnd - workerStart
 
-  // Benchmark split execution (half main thread, half worker)
-  const splitStart = performance.now()
-  const halfIterations = Math.floor(ITERATIONS / 2)
-
-  // Main thread work
-  for (let i = 0; i < halfIterations; i++) {
-    directAdd(i, i)
-  }
-
-  // Worker thread work (concurrent)
-  const workerPromises = []
-  for (let i = halfIterations; i < ITERATIONS; i++) {
-    workerPromises.push(instance.execute(i, i))
-  }
-  await Promise.all(workerPromises)
-
-  const splitEnd = performance.now()
-  const splitTime = splitEnd - splitStart
-
-  console.log(`Direct execution time: ${directTime.toFixed(2)}ms`)
-
-  console.log(`Worker execution time: ${workerTime.toFixed(2)}ms`)
-  console.log(
-    `Worker overhead: ${(workerTime / directTime).toFixed(2)}x slower`,
-  )
-
-  console.log(`Split execution time: ${splitTime.toFixed(2)}ms`)
-  console.log(`Split overhead: ${(splitTime / directTime).toFixed(2)}x slower`)
-
-  // Benchmark pool execution with CPU core count
-  const cpuCount = os.availableParallelism()
-  const pool = await WorkerPool.create<(a: number, b: number) => number>({
+  // Benchmark worker pool execution (parallel)
+  const pool = await WorkerPool.create<(n: number) => number>({
     createWorker: async () => {
       const worker = await workerTS(
-        path.join(import.meta.dirname, "./fixtures/add-node.ts"),
+        path.join(import.meta.dirname, "./fixtures/heavy-compute.ts"),
       )
       return create(worker)
     },
-    size: 2,
+    size: cpuCount,
   })
 
   const poolStart = performance.now()
-  const poolPromises = []
-  for (let i = 0; i < ITERATIONS; i++) {
-    poolPromises.push(pool.execute(i, i))
-  }
+  const poolPromises = Array(TASK_COUNT)
+    .fill(0)
+    .map((_, i) => pool.execute(i))
   await Promise.all(poolPromises)
   const poolEnd = performance.now()
   const poolTime = poolEnd - poolStart
 
-  // Add pool results to console output
+  // Log results
+  console.log(`Direct execution time (sequential): ${directTime.toFixed(2)}ms`)
   console.log(
-    `Pool execution time (${cpuCount} workers): ${poolTime.toFixed(2)}ms`,
+    `Single worker execution time (sequential): ${workerTime.toFixed(2)}ms`,
   )
-  console.log(`Pool overhead: ${(poolTime / directTime).toFixed(2)}x slower`)
+  console.log(
+    `Single worker vs direct: ${(directTime / workerTime).toFixed(2)}x faster`,
+  )
 
-  // Clean up the pool
+  console.log(
+    `Pool execution time (${cpuCount} workers, parallel): ${poolTime.toFixed(2)}ms`,
+  )
+  console.log(`Pool vs direct: ${(directTime / poolTime).toFixed(2)}x faster`)
+  console.log(
+    `Pool vs single worker: ${(workerTime / poolTime).toFixed(2)}x faster`,
+  )
+
+  // Clean up
   pool.terminate()
+  instance.terminate()
 }
 
 void runBenchmark().catch(console.error)
