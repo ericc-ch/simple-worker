@@ -1,13 +1,13 @@
 {
-  "name": "@echristian/pkg-placeholder",
+  "name": "simple-worker",
   "version": "0.0.0",
-  "description": "_description_",
+  "description": "Simple abstraction over node worker.",
   "keywords": [],
-  "homepage": "https://github.com/ericc-ch/pkg-placeholder",
-  "bugs": "https://github.com/ericc-ch/pkg-placeholder/issues",
+  "homepage": "https://github.com/ericc-ch/simple-worker",
+  "bugs": "https://github.com/ericc-ch/simple-worker/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ericc-ch/pkg-placeholder.git"
+    "url": "git+https://github.com/ericc-ch/simple-worker.git"
   },
   "author": "Erick Christian <erickchristian48@gmail.com>",
   "type": "module",
