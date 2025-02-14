@@ -21,25 +21,37 @@ interface QueueItem<F extends AnyFunction> {
 export class WorkerPool<F extends AnyFunction> {
   private workers: Array<PoolWorker<F>> = []
   private queue: Array<QueueItem<F>> = []
-  private createWorker: () => WorkerInstance<F>
+  private createWorker: () => Promise<WorkerInstance<F>>
+  private initialized = false
+  private initializePromise: Promise<void> | null = null
   private size: number
   private maxQueueSize: number
 
   constructor(
-    createWorker: () => WorkerInstance<F>,
+    createWorker: () => Promise<WorkerInstance<F>>,
     options: PoolOptions = {},
   ) {
     this.createWorker = createWorker
     this.size = options.size ?? 1
     this.maxQueueSize = options.maxQueueSize ?? Infinity
-    this.initialize()
   }
 
-  private initialize() {
+  private async initialize() {
     for (let i = 0; i < this.size; i++) {
-      const instance = this.createWorker()
+      const instance = await this.createWorker()
       this.workers.push({ instance, busy: false })
     }
+  }
+
+  private async ensureInitialized() {
+    if (this.initialized) return
+    if (!this.initializePromise) {
+      this.initializePromise = this.initialize().then(() => {
+        this.initialized = true
+      })
+    }
+
+    await this.initializePromise
   }
 
   private getAvailableWorker(): PoolWorker<F> | undefined {
@@ -47,6 +59,8 @@ export class WorkerPool<F extends AnyFunction> {
   }
 
   async execute(...params: Parameters<F>): Promise<ReturnType<F>> {
+    await this.ensureInitialized()
+
     const availableWorker = this.getAvailableWorker()
 
     if (availableWorker) {
