@@ -1,27 +1,23 @@
 import { Worker } from "worker_threads"
 
-import { WorkerRequest, WorkerResponse } from "../types"
+import { AnyFunction, WorkerRequest, WorkerResponse } from "../types"
 
-export function create(worker: Worker) {
-  let messageId = 0
+export function create<F extends AnyFunction = AnyFunction>(worker: Worker) {
   const pending = new Map<
-    number,
+    string,
     {
-      resolve: (result: any) => void
+      resolve: (result: ReturnType<F>) => void
       reject: (error: Error) => void
     }
   >()
 
   // Listen for incoming messages from the worker.
   worker.on("message", (msg: WorkerResponse) => {
-    if (msg && typeof msg.id === "number") {
+    if (typeof msg.id === "string") {
       const handlers = pending.get(msg.id)
       if (!handlers) return
-      if (msg.status === "error") {
-        handlers.reject(new Error(msg.data))
-      } else {
-        handlers.resolve(msg.data)
-      }
+
+      handlers.resolve(msg.data)
       pending.delete(msg.id)
     }
   })
@@ -35,12 +31,16 @@ export function create(worker: Worker) {
   })
 
   return {
-    execute: (payload: any): Promise<any> => {
-      return new Promise((resolve, reject) => {
-        const id = messageId++
-        pending.set(id, { resolve, reject })
-        worker.postMessage({ id, payload } as WorkerRequest)
-      })
+    execute: (payload: Parameters<F>[0]): Promise<ReturnType<F>> => {
+      const id = globalThis.crypto.randomUUID()
+
+      const { promise, resolve, reject } =
+        Promise.withResolvers<ReturnType<F>>()
+      pending.set(id, { resolve, reject })
+
+      worker.postMessage({ id, payload } as WorkerRequest)
+
+      return promise
     },
     terminate: () => worker.terminate(),
   }
