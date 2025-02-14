@@ -57,7 +57,7 @@ run();
 When you need to process multiple tasks in parallel:
 
 ```typescript
-import { WorkerPool } from "simple-worker/node";
+import { WorkerPool } from "worker-plus/node";
 import { Worker } from "worker_threads"; // or "worker" for web
 
 async function main() {
